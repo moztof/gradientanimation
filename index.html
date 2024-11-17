@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gradient Animation</title>
+  <title>Smooth Gradient Animation</title>
   <style>
     body {
       margin: 0;
       overflow: hidden;
+      background-color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: #f0f0f0;
     }
     canvas {
       display: block;
@@ -19,73 +19,55 @@
   </style>
 </head>
 <body>
-  <canvas id="animatedCanvas"></canvas>
+  <canvas id="gradientCanvas"></canvas>
   <script>
-    const canvas = document.getElementById("animatedCanvas");
-    const ctx = canvas.getContext("2d");
+    const canvas = document.getElementById('gradientCanvas');
+    const ctx = canvas.getContext('2d');
 
     // Set canvas dimensions
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    // Shape dimensions and properties
     const shapeWidth = 51.6445;
     const shapeHeight = 74.1113;
-    const borderRadius = 5.3456;
-    const shapeX = (canvas.width - shapeWidth) / 2;
-    const shapeY = (canvas.height - shapeHeight) / 2;
+    canvas.width = shapeWidth * 20; // Scale up for better visibility
+    canvas.height = shapeHeight * 20;
 
-    // Gradient colors
-    const color1 = "rgb(216, 240, 216)";
-    const color2 = "rgb(240, 240, 216)";
+    // Colors and animation settings
+    const colors = ['#d8f0d8', '#f0f0d8', '#cce6cc', '#eaf5e9', '#f0ffe5'];
+    const points = [
+      { x: canvas.width * 0.3, y: canvas.height * 0.3, dx: 0.8, dy: 0.5 },
+      { x: canvas.width * 0.7, y: canvas.height * 0.3, dx: -0.7, dy: 0.3 },
+      { x: canvas.width * 0.5, y: canvas.height * 0.7, dx: 0.4, dy: -0.6 },
+    ];
 
-    // Grain effect settings
-    const grainDensity = 0.2; // Adjust for more/less grain
-    const grainAlpha = 0.1; // Transparency of the grain
+    function drawGradient() {
+      const gradient = ctx.createRadialGradient(
+        points[0].x, points[0].y, 0,
+        points[1].x, points[1].y, canvas.width
+      );
+      // Add color stops
+      gradient.addColorStop(0, colors[0]);
+      gradient.addColorStop(0.5, colors[1]);
+      gradient.addColorStop(1, colors[2]);
 
-    let gradientShift = 0;
-
-    function drawShapeWithGradient() {
-      // Create a linear gradient
-      const gradient = ctx.createLinearGradient(0, gradientShift, 0, gradientShift + canvas.height);
-      gradient.addColorStop(0, color1);
-      gradient.addColorStop(1, color2);
-
-      // Draw the rounded rectangle
+      // Fill the canvas
       ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.moveTo(shapeX + borderRadius, shapeY);
-      ctx.lineTo(shapeX + shapeWidth - borderRadius, shapeY);
-      ctx.quadraticCurveTo(shapeX + shapeWidth, shapeY, shapeX + shapeWidth, shapeY + borderRadius);
-      ctx.lineTo(shapeX + shapeWidth, shapeY + shapeHeight - borderRadius);
-      ctx.quadraticCurveTo(shapeX + shapeWidth, shapeY + shapeHeight, shapeX + shapeWidth - borderRadius, shapeY + shapeHeight);
-      ctx.lineTo(shapeX + borderRadius, shapeY + shapeHeight);
-      ctx.quadraticCurveTo(shapeX, shapeY + shapeHeight, shapeX, shapeY + shapeHeight - borderRadius);
-      ctx.lineTo(shapeX, shapeY + borderRadius);
-      ctx.quadraticCurveTo(shapeX, shapeY, shapeX + borderRadius, shapeY);
-      ctx.closePath();
-      ctx.fill();
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    function addGrainEffect() {
-      const grainSize = 1;
-      for (let i = 0; i < canvas.width * canvas.height * grainDensity; i++) {
-        const x = Math.random() * canvas.width;
-        const y = Math.random() * canvas.height;
-        ctx.fillStyle = `rgba(0, 0, 0, ${Math.random() * grainAlpha})`;
-        ctx.fillRect(x, y, grainSize, grainSize);
-      }
+    function updatePoints() {
+      points.forEach(point => {
+        point.x += point.dx;
+        point.y += point.dy;
+
+        // Reverse direction if the point hits canvas edges
+        if (point.x < 0 || point.x > canvas.width) point.dx *= -1;
+        if (point.y < 0 || point.y > canvas.height) point.dy *= -1;
+      });
     }
 
     function animate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Increment the gradient shift for animation
-      gradientShift = (gradientShift + 1) % canvas.height;
-
-      drawShapeWithGradient();
-      addGrainEffect();
-
+      updatePoints();
+      drawGradient();
       requestAnimationFrame(animate);
     }
 
@@ -93,3 +75,4 @@
   </script>
 </body>
 </html>
+
